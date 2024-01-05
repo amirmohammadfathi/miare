@@ -12,3 +12,14 @@ class TripOfCourier(CreateAPIView):
 
 
 # Create your views here.
+class AdditionalEarningOfCourier(CreateAPIView, ListAPIView):
+    serializer_class = AdditionalEarningSerializer
+
+    def perform_create(self, serializer):
+        serializer.save(courier_id=self.kwargs.get("pk"))
+
+    def get_queryset(self):
+        return (
+            AdditionalEarning.objects.filter(date=date.today(), courier_id=self.kwargs.get("pk"))
+            .select_related('courier').all()
+        )
