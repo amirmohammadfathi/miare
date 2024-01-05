@@ -1,6 +1,6 @@
 from django.urls import path
 from couriers import views
-
+app_name = 'couriers'
 urlpatterns = [
     path(
         "courier/", views.CreateListCouriers.as_view(),
