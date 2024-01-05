@@ -3,6 +3,7 @@ from couriers.models import Courier, DailyEarning, WeeklyEarning
 from datetime import date, timedelta
 from django.db import transaction
 from typing import Literal
+from django.db.models import F
 
 
 @shared_task(name='couriers.tasks.create_daily_earning')
@@ -21,13 +22,13 @@ def update_daily_earning(
 ) -> float:
     with transaction.atomic():
         daily_earning = DailyEarning.objects.select_for_update().filter(courier_id=courier_id).only("earnings").first()
-        daily_earning.earnings += amount if income_type in ["trip", "award"] else 0
-        daily_earning.earnings -= amount if income_type == 'punishment' else 0
+        daily_earning.earnings = F('earnings') + amount if income_type in ["trip", "award"] else F('earnings')
+        daily_earning.earnings = F('earnings') - amount if income_type == 'punishment' else F('earnings')
         daily_earning.save()
     return daily_earning.earnings
 
 
-@shared_task(name='couriers.tasks.calculate_weakly_earning')
+@shared_task(name='couriers.tasks.create_weakly_earning')
 def create_weakly_earning() -> None:
     today = date.today()  # Saturday
     last_weak_saturday = today - timedelta(days=7)
